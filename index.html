@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Despensa</title>
+<meta name="theme-color" content="#1D6B52">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Despensa">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: cabeçalho fixo com busca e abas; categorias como prateleiras rotuladas; seleção vira uma lista de compras agrupada. */
+:root{
+  --bg:#EEF2EF;
+  --surface:#FFFFFF;
+  --ink:#16241E;
+  --muted:#5B6B63;
+  --line:#D3DCD6;
+  --accent:#1D6B52;
+  --accent-ink:#FFFFFF;
+  --tape:#F0C94A;
+  --tape-ink:#2A2208;
+  --font-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101915;--surface:#18241E;--ink:#E8F0EB;--muted:#9AAEA3;--line:#2A3A32;
+    --accent:#52C29B;--accent-ink:#06150F;--tape:#E3BC3C;--tape-ink:#241C04;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101915;--surface:#18241E;--ink:#E8F0EB;--muted:#9AAEA3;--line:#2A3A32;
+  --accent:#52C29B;--accent-ink:#06150F;--tape:#E3BC3C;--tape-ink:#241C04;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 96px;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+.wrap{max-width:980px;margin:0 auto}
+header{
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);
+  padding:16px 0 12px;border-bottom:1px solid var(--line);
+}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--font-display);font-weight:800;font-size:clamp(1.7rem,5vw,2.4rem);letter-spacing:-.02em;margin:0;line-height:1}
+.sub{color:var(--muted);font-size:.9rem;margin:0}
+.tools{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.search{flex:1 1 240px;min-width:0;position:relative}
+.search input{
+  width:100%;font:inherit;color:var(--ink);background:var(--surface);
+  border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;
+}
+.search input::placeholder{color:var(--muted)}
+.tabs{display:flex;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.tab{
+  font:inherit;font-weight:600;font-size:.92rem;color:var(--muted);background:none;border:0;border-radius:7px;
+  padding:8px 14px;cursor:pointer;white-space:nowrap;
+}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.count{
+  display:inline-block;min-width:1.5em;margin-left:6px;padding:0 6px;border-radius:99px;
+  background:var(--tape);color:var(--tape-ink);font-size:.78rem;font-weight:700;text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.cats{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:2px;scrollbar-width:thin}
+.cat{
+  flex:none;font:inherit;font-size:.86rem;font-weight:500;color:var(--ink);background:none;
+  border:1.5px solid var(--line);border-radius:99px;padding:5px 12px;cursor:pointer;
+}
+.cat[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+main{padding-top:20px}
+.shelf{margin-bottom:30px}
+.shelf h2{
+  display:inline-block;font-family:var(--font-display);font-weight:800;font-size:1.05rem;letter-spacing:.01em;
+  background:var(--tape);color:var(--tape-ink);padding:4px 12px;border-radius:3px;margin:0 0 12px;
+  transform:rotate(-.6deg);
+}
+.shelf h2 small{font-family:var(--font-body);font-weight:500;opacity:.75;margin-left:8px;font-size:.8rem}
+.items{display:flex;flex-wrap:wrap;gap:8px}
+.item{
+  font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);
+  border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left;
+  max-width:100%;
+}
+.item:hover{border-color:var(--accent)}
+.item[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.item[aria-pressed="true"]::before{content:"✓ "}
+.empty{color:var(--muted);padding:28px 0;max-width:46ch}
+.list-group{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.list-group h3{font-family:var(--font-display);font-size:1rem;margin:0 0 8px;color:var(--accent)}
+.list-group ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.list-group li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+.list-group li:first-child{border-top:0}
+.list-group li span{min-width:0;overflow-wrap:anywhere}
+.rm{font:inherit;font-size:.82rem;color:var(--muted);background:none;border:1px solid var(--line);border-radius:6px;padding:3px 9px;cursor:pointer;flex:none}
+.rm:hover{color:var(--ink);border-color:var(--ink)}
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--surface);border-top:1.5px solid var(--line);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+}
+.bar .wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bar .msg{flex:1 1 140px;font-size:.92rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-weight:600;font-size:.92rem;border-radius:9px;padding:9px 16px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:none;color:var(--ink);border-color:var(--line)}
+.btn[disabled]{opacity:.45;cursor:default}
+@media (prefers-reduced-motion:no-preference){.item,.cat,.tab,.btn{transition:background .12s,border-color .12s}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="top">
+      <h1>Despensa</h1>
+      <p class="sub" id="total"></p>
+    </div>
+    <div class="tools">
+      <div class="search">
+        <input id="q" type="search" placeholder="Buscar ingrediente (ex.: queijo, tomate)" autocomplete="off" aria-label="Buscar ingrediente">
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-all" aria-selected="true">Ingredientes</button>
+        <button class="tab" role="tab" id="tab-list" aria-selected="false">Minha lista<span class="count" id="count">0</span></button>
+      </div>
+    </div>
+    <div class="cats" id="cats" aria-label="Filtrar por categoria"></div>
+  </header>
+  <main id="main"></main>
+</div>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="msg" id="msg"></div>
+    <button class="btn ghost" id="clear" disabled>Limpar seleção</button>
+    <button class="btn" id="copy" disabled>Copiar lista</button>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  "Bebidas": ["Sidra de maçã","Suco de maçã","Água tônica / água com gás","Chocolate quente (achocolatado em pó)","Café","Refrigerante de cola","Refrigerante de cola diet","Eggnog (gemada natalina)","Ponche de frutas","Ginger ale","Café instantâneo","Refrigerante de limão","Limonada","Suco de laranja","Suco de abacaxi","Suco de tomate"],
+  "Pães e massas prontas": ["Bagels","Pão (em geral)","Massa de pão (em geral)","Pães de hambúrguer","Pão de milho","Farinha de rosca / recheio / panko","Massa de rolinho primavera","Muffins ingleses","Pão sírio achatado","Pão francês","Pão de sanduíche longo (hoagie)","Casquinhas de sorvete","Pão italiano","Massa de torta","Pão pita","Massa de pizza","Pãezinhos / biscuits","Pão de centeio","Tortilhas / conchas de taco","Pão integral / multigrãos","Pão branco","Massa de wonton"],
+  "Enlatados": ["Feijão cozido ao molho (baked beans)","Feijões (em geral)","Caldo / tablete / sopa de carne","Sopa de carne","Feijão-preto","Milho em conserva","Tomate pelado em lata","Sopa de queijo","Caldo / sopa de frango","Chili","Corned beef com batata (hash)","Bisque de caranguejo","Creme de aipo","Creme de frango","Creme de milho","Creme de cogumelos","Creme de cebola","Creme de camarão","Creme de legumes (em geral)","Sopa de cebola francesa","Grão-de-bico","Gumbo","Feijão-vermelho (kidney)","Fava (feijão-lima)","Minestrone","Feijão com porco","Feijão refrito","Extrato de tomate","Sopa de tomate","Caldo de legumes"],
+  "Cereais": ["Cereal (em geral)","Cheerios","Cereal de canela crocante","Cereal crocante","Cereal de flocos","Cereal Hex","Rice Krispies (arroz crocante)"],
+  "Condimentos e molhos": ["Purê de maçã","Molho barbecue","Mostarda escura / Dijon","Molho de pimenta (buffalo)","Vinho Borgonha","Caramelo","Molho Caesar","Molho de queijo","Molho chili","Calda de chocolate","Molho cocktail","Xarope de milho","Geleia de cranberry","Molho curry","Vinho branco","Molho francês / Catalina","Molho de alho","Geleia de uva","Molho de carne (gravy)","Guacamole","Mel","Mostarda e mel","Raiz-forte","Molho italiano","Geleia (em geral)","Ketchup","Vinho Marsala","Maionese","Miracle Whip","Melaço","Mostarda","Nutella","Geleia de laranja","Molho de ostra","Pasta de amendoim","Pesto","Molho de sementes de papoula","Molho ranch","Vinho tinto","Relish (picles picado)","Salsa (molho mexicano)","Pasta para sanduíche","Vinho xerez","Molho de soja (shoyu)","Molho de carne para espaguete","Spin Art Dip (pasta para petiscos)","Molho para carne (steak sauce)","Vinho branco doce","Xarope de bordo","Molho para taco / enchilada","Molho teriyaki","Molho mil ilhas","Molho tabasco","Molho de tomate (em geral)","Vermute","Molho vinagrete","Vinagre (em geral)","Vinagre balsâmico","Vinagre de maçã","Vinagre tinto","Vinagre de vinho tinto","Vinagre branco","Chantilly (spray)","Molho branco (bechamel)","Molho inglês (Worcestershire)"],
+  "Laticínios e ovos": ["Queijo americano","Queijo azul (gorgonzola)","Queijo azul esfarelado","Manteiga / margarina","Leitelho","Queijo cheddar","Queijo (em geral)","Leite com chocolate","Leite de coco","Queijo Colby","Leite condensado / evaporado","Leite condensado (adoçado)","Chantilly / Cool Whip","Queijo cottage","Creme de leite (em geral)","Cream cheese","Ovos","Queijo feta","Queijo de cabra","Half and half (leite com creme)","Creme de leite fresco","Sorvete","Queijo Jack","Leite","Queijo Monterey Jack","Mussarela","Parmesão","Provolone","Ricota","Queijo Romano","Creme azedo (sour cream)","Queijo suíço","Velveeta (queijo processado)","Iogurte"],
+  "Temperos e ingredientes": ["Pimenta-da-jamaica","Extrato de amêndoa","Mistura para pão de ló (angel food)","Recheio de torta de maçã","Chocolate culinário","Fermento em pó","Bicarbonato de sódio","Tempero barbecue","Manjericão","Folhas de louro","Pimenta-do-reino","Misturas para pão","Açúcar mascavo","Tempero cajun","Óleo de canola","Pimenta caiena","Sal de aipo","Chili em pó","Tempero para chili","Cebolinha francesa (chives)","Gotas / barras de chocolate","Mistura para pudim de chocolate","Coentro","Canela","Cravo","Extrato de coco","Spray de cozinha","Mistura para pão de milho","Fubá / polenta","Óleo de milho","Amido de milho","Tempero crioulo","Cominho","Curry em pó","Mistura para bolo escuro","Endro (dill)","Mostarda em pó","Semente de funcho","Farinha de trigo","Farinha integral","Alho em pó","Sal de alho","Gengibre","Tempero italiano","Tempero de limão e ervas","Extrato de limão","Suco de limão-siciliano","Pimenta com limão","Mistura para bolo claro","Suco de limão","Tempero para carnes","Hortelã","Noz-moscada","Azeite de oliva","Cebola em pó","Mistura para sopa de cebola","Orégano","Mistura para panqueca / bolo","Páprica","Salsinha","Óleo de amendoim","Pimenta em grãos","Sementes de papoula","Açúcar de confeiteiro","Recheio de torta de abóbora","Tempero para torta de abóbora","Tempero ranch (sachê)","Pimenta vermelha","Alecrim","Sal","Sal e pimenta","Sal temperado","Óleo de gergelim","Sementes de gergelim","Gordura vegetal / óleo (em geral)","Mistura para bolo de especiarias","Splenda (adoçante)","Açúcar","Tempero para taco","Tomilho","Gordura do assado de peru","Extrato de baunilha","Mistura para pudim de baunilha","Óleo vegetal","Pimenta-branca","Fermento biológico","Mistura para bolo amarelo"],
+  "Bebidas alcoólicas": ["Baileys","Cerveja (em geral)","Conhaque (brandy)","Rum de coco","Gim","Grand Marnier","Kahlúa","Pale Ale (ex.: Amberbock)","Pucker de framboesa","Rum","Stout (ex.: Guinness)","Tequila","Triple sec","Vodca","Uísque"],
+  "Carnes": ["Bacon","Carne bovina (em geral)","Mortadela","Peito bovino (brisket)","Frango enlatado","Frango / peru (em geral)","Peito de frango","Salsichinhas cocktail","Corned beef","Carne moída","Carne moída (em geral)","Carne de porco moída","Peru moído","Vitela moída","Presunto","Salsicha (hot dog)","Kielbasa","Cordeiro","Almôndegas","Pepperoni","Linguiça polonesa","Costeletas de porco","Assado de porco","Lombo de porco","Presunto cru (prosciutto)","Rosbife / carne de panela","Salame","Linguiça / salsichas (brats)","Frango fatiado","Presunto fatiado","Rosbife fatiado","Peru fatiado","Bife","Peito de peru","Coxas de peru"],
+  "Massas e grãos": ["Cabelo de anjo","Cevada","Arroz preto","Massa gravatinha","Arroz integral","Macarrão de ovos","Macarrão cotovelo","Fettuccine","Nhoque","Granola","Massa de lasanha","Macarrão com queijo (mac and cheese)","Aveia / mingau de aveia","Orzo","Massa (em geral)","Lámen (macarrão instantâneo)","Arroz (em geral)","Rigatoni","Parafuso (rotini)","Conchinha","Espaguete","Tortellini","Arroz branco","Arroz selvagem","Ravióli"],
+  "Hortifrúti": ["Maçãs","Alcachofras","Aspargos","Abacate","Banana","Feijões","Azeitonas pretas","Mirtilos","Brócolis","Couves-de-bruxelas","Abóbora-menina (butternut)","Repolho","Cenoura","Couve-flor","Aipo","Cerejas","Tomates-cereja","Pimentas (chilis)","Coco","Milho","Cranberries","Pepino","Berinjela","Frutas (em geral)","Alho","Toranja","Uvas","Vagem","Pimentas verdes","Azeitonas verdes","Cebolinha-verde","Pimentões verdes","Jalapeños / chipotle","Limões-sicilianos","Alface","Limões","Manga","Cogumelos","Azeitonas / alcaparras","Cebolas / echalotas","Laranjas","Pêssegos","Peras","Ervilhas","Pimentões (em geral)","Picles","Abacaxi","Batatas","Purê de batata","Batata-rosa","Batata-doce","Abóbora-moranga","Uvas-passas","Framboesas","Pimentões vermelhos","Chucrute","Cebolinha (scallion)","Espinafre / folhas","Abóbora (squash)","Morangos","Tomates","Nabo / rutabaga","Vegetais (em geral)","Melancia","Pimentões amarelos","Abobrinha","Couve"],
+  "Peixes e frutos do mar": ["Atum enlatado","Bagre","Mariscos","Bacalhau","Caranguejo","Peixe (em geral)","Hadoque","Salmão","Vieiras","Camarão","Peixe-espada","Tilápia","Atum"],
+  "Lanches": ["Amêndoas","Castanha-de-caju","Cheese Its (biscoitos de queijo)","Barras de chocolate (em geral)","Biscoitos salgados (em geral)","Doritos","Batata frita congelada","Hash browns congelado","Tots congelados (bolinhos de batata)","Biscoito graham","Gelatina (Jello)","Kit Kat","M&Ms","Marshmallows","Castanhas / nozes (em geral)","Oreos","Biscoitos de ostra (oyster crackers)","Amendoim","Pecãs","Pipoca","Batata chips","Pretzels","Biscoitos Ritz","Biscoitos cream cracker","Salgadinho de milho / tortilla chips","Nozes","Wheat Thins / Triscuits","Twinkie"]
+};
+const CATS = Object.keys(DATA);
+const ALL = [];
+CATS.forEach(c => DATA[c].forEach(n => ALL.push({id:c+"|"+n, cat:c, name:n})));
+
+const KEY = "despensa-selecao-v1";
+let selected = new Set();
+try { selected = new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch(e) {}
+const validIds = new Set(ALL.map(i => i.id));
+selected = new Set([...selected].filter(id => validIds.has(id)));
+function save(){ try { localStorage.setItem(KEY, JSON.stringify([...selected])); } catch(e) {} }
+
+let view = "all", catFilter = null, query = "";
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const $ = id => document.getElementById(id);
+const main = $("main");
+
+$("total").textContent = ALL.length + " ingredientes em " + CATS.length + " categorias";
+
+const catsEl = $("cats");
+function renderCats(){
+  catsEl.innerHTML = "";
+  const mk = (label, val) => {
+    const b = document.createElement("button");
+    b.className = "cat"; b.textContent = label;
+    b.setAttribute("aria-pressed", String(catFilter === val));
+    b.onclick = () => { catFilter = val; renderCats(); render(); };
+    catsEl.appendChild(b);
+  };
+  mk("Todas", null);
+  CATS.forEach(c => mk(c, c));
+}
+
+function toggle(id){
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  save(); updateBar();
+}
+
+function renderAll(){
+  const q = norm(query.trim());
+  let shown = 0;
+  const frag = document.createDocumentFragment();
+  CATS.forEach(c => {
+    if (catFilter && catFilter !== c) return;
+    const items = ALL.filter(i => i.cat === c && (!q || norm(i.name).includes(q)));
+    if (!items.length) return;
+    shown += items.length;
+    const sec = document.createElement("section"); sec.className = "shelf";
+    const h = document.createElement("h2");
+    h.innerHTML = ""; h.append(c);
+    const sm = document.createElement("small"); sm.textContent = items.length; h.appendChild(sm);
+    sec.appendChild(h);
+    const wrap = document.createElement("div"); wrap.className = "items";
+    items.forEach(i => {
+      const b = document.createElement("button");
+      b.className = "item"; b.textContent = i.name;
+      b.setAttribute("aria-pressed", String(selected.has(i.id)));
+      b.onclick = () => { toggle(i.id); b.setAttribute("aria-pressed", String(selected.has(i.id))); };
+      wrap.appendChild(b);
+    });
+    sec.appendChild(wrap); frag.appendChild(sec);
+  });
+  main.innerHTML = "";
+  if (!shown) {
+    const p = document.createElement("p"); p.className = "empty";
+    p.textContent = "Nenhum ingrediente encontrado para \"" + query + "\". Tente outra palavra ou limpe o filtro de categoria.";
+    main.appendChild(p);
+  } else main.appendChild(frag);
+}
+
+function renderList(){
+  main.innerHTML = "";
+  if (!selected.size) {
+    const p = document.createElement("p"); p.className = "empty";
+    p.textContent = "Sua lista está vazia. Volte para a aba Ingredientes e toque nos itens que você precisa. A lista fica salva neste navegador.";
+    main.appendChild(p); return;
+  }
+  CATS.forEach(c => {
+    const items = ALL.filter(i => i.cat === c && selected.has(i.id));
+    if (!items.length) return;
+    const g = document.createElement("section"); g.className = "list-group";
+    const h = document.createElement("h3"); h.textContent = c + " (" + items.length + ")"; g.appendChild(h);
+    const ul = document.createElement("ul");
+    items.forEach(i => {
+      const li = document.createElement("li");
+      const sp = document.createElement("span"); sp.textContent = i.name;
+      const rm = document.createElement("button"); rm.className = "rm"; rm.textContent = "Remover";
+      rm.setAttribute("aria-label", "Remover " + i.name);
+      rm.onclick = () => { toggle(i.id); render(); };
+      li.append(sp, rm); ul.appendChild(li);
+    });
+    g.appendChild(ul); main.appendChild(g);
+  });
+}
+
+function render(){ view === "all" ? renderAll() : renderList(); }
+
+function updateBar(){
+  const n = selected.size;
+  $("count").textContent = n;
+  $("msg").textContent = n ? n + (n === 1 ? " item selecionado" : " itens selecionados") : "Toque nos itens para montar sua lista";
+  $("clear").disabled = !n; $("copy").disabled = !n;
+}
+
+function setView(v){
+  view = v;
+  $("tab-all").setAttribute("aria-selected", String(v === "all"));
+  $("tab-list").setAttribute("aria-selected", String(v === "list"));
+  $("cats").hidden = v !== "all";
+  $("q").parentElement.hidden = v !== "all";
+  render(); window.scrollTo(0, 0);
+}
+$("tab-all").onclick = () => setView("all");
+$("tab-list").onclick = () => setView("list");
+$("q").addEventListener("input", e => { query = e.target.value; renderAll(); });
+
+let clearArmed = false, clearTimer;
+$("clear").onclick = () => {
+  if (!clearArmed) {
+    clearArmed = true; $("clear").textContent = "Confirmar limpeza";
+    clearTimer = setTimeout(() => { clearArmed = false; $("clear").textContent = "Limpar seleção"; }, 3500);
+    return;
+  }
+  clearTimeout(clearTimer); clearArmed = false; $("clear").textContent = "Limpar seleção";
+  selected.clear(); save(); updateBar(); render();
+};
+
+$("copy").onclick = async () => {
+  const lines = [];
+  CATS.forEach(c => {
+    const items = ALL.filter(i => i.cat === c && selected.has(i.id));
+    if (!items.length) return;
+    lines.push(c.toUpperCase()); items.forEach(i => lines.push("- " + i.name)); lines.push("");
+  });
+  const text = lines.join("\n").trim();
+  const btn = $("copy");
+  try { await navigator.clipboard.writeText(text); btn.textContent = "Copiado"; }
+  catch(e) {
+    setView("list");
+    const r = document.createRange(); r.selectNodeContents(main);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    btn.textContent = "Texto selecionado";
+  }
+  setTimeout(() => btn.textContent = "Copiar lista", 1800);
+};
+
+renderCats(); updateBar(); render();
+</script>
+
+<script>if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body>
+</html>
